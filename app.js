@@ -14,7 +14,7 @@ const start_screen = $('#start-screen');
 const game_screen = $('#game-screen');
 const pause_screen = $('#pause-screen');
 const result_screen = $('#result-screen')
-
+const over_screen = $('#game-over-screen');
 // initial value
 
 const cells = $$('.main-grid-cell');
@@ -38,6 +38,9 @@ let su = undefined;
 let su_answer = undefined;
 
 let selected_cell = -1;
+
+let error_number = 5;
+let isError = false;
 // -------
 
 
@@ -138,15 +141,22 @@ const resetBg = () => {
 }
 
 const checkErr = (value) => {
+    isError = false;
+    
     const addErr = (cell) => {
         if(parseInt(cell.getAttribute('data-value')) === value){
             cell.classList.add('err');
             cell.classList.add('cell-err');
+            isError = true;
+            
         }
         setTimeout(() => {
             cell.classList.remove('cell-err')
         },500)
     }
+
+    
+
     let index = selected_cell;
 
     let row = Math.floor(index/CONSTANT.GRID_SIZE);
@@ -183,6 +193,13 @@ const checkErr = (value) => {
     while(index + step < 9*row + 9){
         addErr(cells[index + step]);
         step += 1;
+    }
+
+
+    if(isError) {
+        console.log('err_number',error_number);
+        error_number -= 1;
+        $('#error-number').innerHTML = error_number;
     }
 }
 
@@ -238,7 +255,7 @@ const removeGameInfo = () => {
 }
 const isGameWin = () => {
     sudokuCheck(su_answer);
-    console.log(sudokuCheck(su_answer));
+    
     return sudokuCheck(su_answer)
 }
 
@@ -247,6 +264,13 @@ const showResult = () => {
     // show result screen
     result_screen.classList.add('active');
     result_time.innerHTML = showTime(seconds);
+}
+
+const showOver = () => {
+    clearInterval(timer);
+    // show over screen
+    over_screen.classList.add('active');
+    
 }
 
 const initNumberInputEvent = () => {
@@ -277,6 +301,12 @@ const initNumberInputEvent = () => {
                     showResult();
                 }
                 // ------
+                // check over game
+                if(error_number <= 0){
+                    removeGameInfo();
+                    showOver();
+                }
+                // -------
             }
         }
     })
@@ -309,6 +339,9 @@ const startGame  = () => {
 
     game_level.innerHTML = CONSTANT.LEVEL_NAMES[level_index];
 
+    
+    $('#error-number').innerHTML = error_number;
+    
     seconds = 0;
     showTime(seconds);
 
@@ -328,6 +361,7 @@ const returnStartScreen = () => {
     game_screen.classList.remove('active');
     pause_screen.classList.remove('active');
     result_screen.classList.remove('active');
+    over_screen.classList.remove('active');
 }
 const getGameInfo = () => JSON.parse(localStorage.getItem('game'));
 // add button events
@@ -376,6 +410,9 @@ $('#btn-new-game').onclick = () => {
     returnStartScreen();
 }
 $('#btn-new-game-2').onclick = () => {
+    returnStartScreen();
+}
+$('#btn-new-game-3').onclick = () => {
     returnStartScreen();
 }
 $('#btn-delete').onclick = () => {
